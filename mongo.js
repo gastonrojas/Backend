@@ -1,0 +1,1 @@
+export default 'mongodb+srv://root:mongoatlaspassword@productos.txyub.mongodb.net/ecommerce?retryWrites=true&w=majority'
