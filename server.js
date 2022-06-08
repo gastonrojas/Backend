@@ -1,10 +1,14 @@
-import  express  from 'express';
+import  express, { json }  from 'express';
 import http from 'http'
 import {Server} from 'socket.io'
 import mongoose from 'mongoose';
+import { normalize, denormalize, schema }from 'normalizr';
+import util from 'util'
+
+
 
 import productsTest from './src/routes/products-test.js';
-import connectionString from './mongo.js'
+import connectionString from './mongoDb.js'
 
 
 
@@ -27,12 +31,22 @@ const messagesDb = mongoose.model('mensajes', new mongoose.Schema({
 }))
 
 io.on('connection', async (socket) => {
- const productos =  await productsDb.find({}, { _id: 0, __v: 0 })
- console.log(productos)
+ const productos = await productsDb.find({}, { _id: 0, __v: 0 }); 
   socket.emit('products', productos);
+  // console.log(productos)
+  const messages = await messagesDb.find().lean()
+  const authorsSchema = new schema.Entity('authors')
+  const messagesSchema = new schema.Entity('messages', { author: authorsSchema }, {idAttribute: '_id'})
+
+  const normalizedMessages = normalize(messages, [messagesSchema])
+  const messagesLength = JSON.stringify(messages).length
+  const normalizedLength = JSON.stringify(normalizedMessages).length
+  console.log(messagesLength, normalizedLength)
+
+  console.log(util.inspect(normalizedMessages, false, 12, true))
+// console.log(messages)
+  socket.emit('messages', normalizedMessages);
   
-  const messages = await messagesDb.find({}, { _id: 0, __v: 0 })
-  socket.emit('messages', messages);
     
 
 
@@ -44,8 +58,10 @@ io.on('connection', async (socket) => {
 
   socket.on('newMessage', async(newMessage)=>{
     await messagesDb.create(newMessage)
-    const mensajes = await messagesDb.find({}, { _id: 0, __v: 0 })
-    io.sockets.emit('messages', mensajes)
+    const messages = await messagesDb.find().lean()
+    const normalizedMessages = normalize(messages, [messagesSchema])
+
+    io.sockets.emit('messages', normalizedMessages)
 
   })
 
