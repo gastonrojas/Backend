@@ -1,1 +1,0 @@
-export default 'mongodb+srv://root:mongoatlaspassword@productos.txyub.mongodb.net/ecommerce'
