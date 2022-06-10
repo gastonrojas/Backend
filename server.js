@@ -36,14 +36,13 @@ app.get('/', (req, res)=>{
 })
 
 app.get('/logout', (req, res)=>{
+
+  req.session.destroy(err => {
+    if (!err) res.redirect(200, '/')
+    else res.send({ status: 'Logout ERROR', body: err })
+})
   
 })
-
-
-
-
-// app.use(express.static('public'));
-
 
 
 const connectedServer = app.listen(8080, () => {
